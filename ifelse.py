@@ -31,14 +31,3 @@ elif(num>10):
         print("number is b/w 11-20")
     else:
         print("num greater than 20")
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
