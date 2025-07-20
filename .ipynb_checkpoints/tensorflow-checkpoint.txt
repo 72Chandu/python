@@ -1,0 +1,35 @@
+TensorFlow is an open-source framework for machine learning (ML) and artificial intelligence (AI) 
+It was designed to facilitate the development of machine learning models, particularly deep learning models by providing tools to easily build, train and deploy them across different platforms.
+
+Tensors: Tensors are the fundamental units of data in TensorFlow. They are multi-dimensional arrays or matrices used for storing data. A tensor can have one dimension (vector), two dimensions (matrix) or more dimensions.
+
+Graph: A TensorFlow graph represents a computation as a flow of tensors through a series of operations. Each operation in the graph performs a specific mathematical function on the input tensors such as matrix multiplication, addition or activation.
+
+Session: A session in TensorFlow runs the computation defined by the graph and evaluates the tensors. This is where the actual execution of the model happens enabling the training and inference processes.
+
+
+
+Step 1: Train a Model
+
+Use TensorFlow to build and train a machine learning model on platform like a PC or cloud.
+Employ datasets relevant to your application like images, text, sensor data, etc.
+Evaluate and validate the model to ensure high accuracy before deployment.
+
+Step 2: Convert the Model
+Convert the trained model into TensorFlow Lite (.tflite) format using the TFLite Converter.
+This conversion prepares the model for resource-constrained edge environments.
+Supports different formats like saved models, Keras models or concrete functions.
+
+Step 3: Optimize the Model
+Apply model optimization techniques such as quantization, pruning or weight clustering.
+Reduces the model size, improves inference speed and minimizes memory footprint.
+Crucial for running models efficiently on mobile, embedded or microcontroller devices.
+
+Step 4: Deploy the Model
+Deploy the optimized .tflite model to edge devices like Android, iOS, Linux-based embedded systems like Raspberry Pi and Microcontrollers like Arm Cortex-M.
+Ensure compatibility with TensorFlow Lite runtime for the target platform.
+
+Step 5: Make Inferences at the Edge
+Run real-time predictions directly on the edge device using the TFLite Interpreter.
+Enables low-latency, offline inference without relying on cloud computation.
+Supports use cases like image recognition, voice detection and sensor data analysis.
