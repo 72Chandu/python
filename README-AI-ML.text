@@ -1,0 +1,118 @@
+# matplotlib:It is used to visualize data in graphical form
+
+| Task                 | Description                                      |
+| -------------------- | ------------------------------------------------ |
+| 📊 **Line Plot**     | Show trends over time or continuous data         |
+| 📈 **Bar Chart**     | Compare categorical data                         |
+| 📉 **Histogram**     | Display frequency distributions                  |
+| 📍 **Scatter Plot**  | Show relationships or correlations               |
+| 🧭 **Pie Chart**     | Show proportions of a whole                      |
+| 🎯 **Customization** | Titles, axis labels, legends, colors, grid, etc. |
+| 🖼️ **Save Graphs**  | Export to PNG, PDF, SVG, etc.                    |
+
+pip install matplotlib
+
+import matplotlib.pyplot as plt
+
+# Sample data
+x = [1, 2, 3, 4, 5]
+y = [10, 12, 8, 14, 20]
+
+# Create a line plot
+plt.plot(x, y, label='Sales Over Time')
+plt.xlabel('Days')
+plt.ylabel('Sales')
+plt.title('Sales Performance')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# TensorFlow: used primarily for machine learning and deep learning. It provides a comprehensive, flexible ecosystem of tools to build and train AI models efficiently.
+
+| Use Case                                  | Description                                                        |
+| ----------------------------------------- | ------------------------------------------------------------------ |
+| 🤖 **Machine Learning**                   | Create and train models for classification, regression, clustering |
+| 🧠 **Deep Learning**                      | Build neural networks like CNNs, RNNs, Transformers                |
+| 🖼️ **Computer Vision**                   | Image recognition, object detection, segmentation                  |
+| 🗣️ **Natural Language Processing (NLP)** | Sentiment analysis, translation, text summarization                |
+| 🎮 **Reinforcement Learning**             | Training agents in environments (e.g., games, robotics)            |
+| 🔒 **Predictive Analytics**               | Fraud detection, recommendation systems                            |
+| 📱 **Deploying Models**                   | On web, mobile (with TensorFlow Lite), cloud, or edge devices      |
+
+Production-ready — can deploy models with TensorFlow Serving, TF Lite, or TensorFlow.js
+Keras integration — easy, beginner-friendly API (tf.keras)
+
+pip install tensorflow
+
+Common Applications in Real World
+Google Translate
+Self-driving cars (object detection)
+Chatbots (intent classification)
+Face detection & recognition
+Predicting stock prices
+Health diagnostics using imaging
+
+| Component     | Description                                     |
+| ------------- | ----------------------------------------------- |
+| `tf.keras`    | High-level API to build & train models easily   |
+| `tf.data`     | Efficient data loading and preprocessing        |
+| `tf.function` | Converts Python functions into TensorFlow graph |
+| `TensorBoard` | Visualization tool for training and metrics     |
+| `TFLite`      | Optimizes models for mobile/IoT devices         |
+| `TF Serving`  | Serve models in production via APIs             |
+
+# opencv-python:used for computer vision, image processing, and video analysis.
+
+| Use Case                     | Description                                                 |
+| ---------------------------- | ----------------------------------------------------------- |
+| 📷 **Image Processing**      | Read, write, crop, resize, filter, enhance images           |
+| 🎥 **Video Analysis**        | Read/write video files, process video streams (like webcam) |
+| 🧍 **Object Detection**      | Face detection, pedestrian detection, car detection         |
+| 🧠 **Computer Vision**       | Edge detection, feature matching, motion tracking           |
+| 🤳 **Facial Recognition**    | Detect and identify human faces in real time                |
+| 🤖 **Robotics & Automation** | Camera integration, real-time object tracking               |
+| 🧾 **Document Scanning**     | Detect text regions, contours, and correct skew             |
+
+Works with real-time data (webcam, video streams)
+Easily integrates with libraries like NumPy, TensorFlow, PyTorch
+
+pip install opencv-python
+
+| Task            | Function             |
+| --------------- | -------------------- |
+| Read Image      | `cv2.imread()`       |
+| Write Image     | `cv2.imwrite()`      |
+| Show Image      | `cv2.imshow()`       |
+| Resize          | `cv2.resize()`       |
+| Convert Color   | `cv2.cvtColor()`     |
+| Edge Detection  | `cv2.Canny()`        |
+| Blur            | `cv2.GaussianBlur()` |
+| Shape Detection | `cv2.findContours()` |
+| Video Capture   | `cv2.VideoCapture()` |
+
+Real-World Applications
+Surveillance systems
+Face ID in phones
+Augmented reality (AR)
+OCR (Optical Character Recognition)
+Lane detection in self-driving cars
+Barcode/QR code scanners
+
+
+Create a New Conda Environment with Compatible Python + Numpy
+Let’s isolate the problem by creating a clean environment with:
+Python 3.10
+NumPy 1.24
+All other packages you need (matplotlib, tensorflow, etc.)
+Step 1: Open Anaconda Prompt
+
+conda create -n img-env python=3.10 numpy=1.24 matplotlib tensorflow opencv
+
+This will:
+Create a new environment called img-env
+Install compatible versions of NumPy, TensorFlow, OpenCV, Matplotlib, etc.
+
+Step 2: Activate the New Environment: conda activate img-env
+You should now see:(img-env) C:\Users\HP>
+
+come to original environment: conda deactivate
