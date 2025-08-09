@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Python Meet</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center p-6">
+
+  <div class="flex justify-between items-center w-full max-w-5xl mb-6">
+    <h1 class="text-3xl font-bold">Meet Clone</h1>
+  </div>
+
+  <div class="mb-4 flex gap-2">
+    <input id="room-input" class="px-4 py-2 rounded text-black" placeholder="Enter Room ID">
+    <button onclick="joinRoom()" class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"><i class="fas fa-door-open"></i></button>
+    <button onclick="generateRoom()" class="bg-green-600 px-4 py-2 rounded hover:bg-green-700"><i class="fas fa-plus-square"></i></button>
+  </div>
+  <p id="room-link" class="text-green-400 mb-4"></p>
+<div class="flex w-full relative max-w-7xl">
+  <!-- Video Section -->
+  <div class="flex flex-col items-center flex-grow">
+    <div class="relative mb-4">
+      <video id="localVideo" autoplay muted playsinline class="rounded-lg border-2 border-gray-300 w-64 h-48 mb-2"></video>
+      <img id="local-avatar" src="/static/avatar.png" alt="Me" class="w-10 h-10 rounded-full absolute top-2 left-2 border border-white">
+    </div>
+    <!-- Remote video container -->
+    <div id="remoteVideos" class="flex flex-wrap gap-4 justify-center mt-4"></div>
+    <!-- Control Buttons -->
+    <div class="flex gap-4 mt-6 flex-wrap justify-center">
+      <button id="share-screen"  class="bg-purple-600 px-4 py-2 rounded hover:bg-purple-700"><i class="fas fa-desktop"></i></button>
+      <button id="toggle-audio" class="bg-red-600 px-4 py-2 rounded hover:bg-red-700">🔇</button>
+      <button id="toggle-video" class="bg-yellow-600 px-4 py-2 rounded hover:bg-yellow-700">📷</button>
+      <button id="leave-room"  class="bg-green-700 px-4 py-2 rounded hover:bg-red-800"><i class="fas fa-sign-out-alt" style="color:red"></i></button>
+      <button id="show-participants"  class="bg-indigo-600 px-3 py-2 rounded hover:bg-indigo-700"><i class="fas fa-users" title="Participants"></i></button>
+      <button id="show-messages"  class="bg-pink-600 px-3 py-2 rounded hover:bg-pink-700"><i class="fas fa-comment-dots" title="Messages"></i></button>
+    </div>
+  </div>
+  <!-- Right Sidebar -->
+  <div class="absolute right-0 top-0 h-full w-72 flex flex-col p-4 bg-gray-900 text-sm rounded-l-xl shadow-lg">
+    <div id="participants-container" class="hidden flex flex-col h-full">
+      <h2 class="text-lg font-semibold mb-2">Participants</h2>
+      <ul id="participants" class="flex-1 overflow-y-auto p-2 rounded bg-gray-900"></ul>
+    </div>
+
+    <div id="messages-container" class="hidden flex flex-col h-full">
+      <h2 class="text-lg font-semibold mb-2">Chat</h2>
+      <div id="messages" class="flex-1 overflow-y-auto p-2 rounded bg-gray-900 mb-2"></div>
+      <div class="flex">
+        <input id="chatInput" placeholder="Type a message" class="flex-1 p-2 rounded-l text-black">
+        <button onclick="sendMessage()" class="bg-blue-500 p-2 rounded-r hover:bg-blue-600">Send</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+  <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+  <script>
+    const username = "{{ user.username }}";
+    const userId = "{{ user.id }}";
+    window.onload = () => {
+      const roomFromURL = "{{ room }}";
+      if (roomFromURL) {
+        document.getElementById('room-input').value = roomFromURL;
+      }
+    };
+  </script>
+  <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</body>
+</html>

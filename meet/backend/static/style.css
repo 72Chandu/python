@@ -1,0 +1,36 @@
+body {
+  font-family: Arial;
+  text-align: center;
+  margin: 20px;
+}
+#video-chat {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+#video-box {
+  flex: 1;
+}
+#chat-box {
+  flex: 1;
+  max-width: 300px;
+  padding-left: 20px;
+}
+video {
+  width: 90%;
+  margin: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+#messages {
+  border: 1px solid #ccc;
+  height: 200px;
+  overflow-y: scroll;
+  margin-bottom: 10px;
+  padding: 10px;
+  text-align: left;
+}
+#chatInput {
+  width: 80%;
+  padding: 5px;
+}
