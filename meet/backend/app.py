@@ -5,8 +5,10 @@ from model.user import User
 from mongoengine import connect
 import eventlet
 from collections import defaultdict
-room_users = defaultdict(set) # Dictionary to store users in each room
+from model.room import Room
 
+room_users = defaultdict(set) # Dictionary to store users in each room
+room_hosts = {}  # Host SID for each room  <-- NEW
 try:
     connect(
         db='meet_db',
@@ -79,6 +81,60 @@ def handle_connect():
         print("Anonymous connection rejected")
         return False  # Disconnect unauthenticated sockets
 
+# --- helper to emit participant info to everyone in a room ---
+@socketio.on('get_participants')
+def handle_get_participants(data):
+    room_id = data.get('roomId')
+    room = Room.objects(roomId=room_id).first()
+
+    # print(f"\033[94m[get_participants called with:]\033[0m {room_id}")
+    # print(f"\033[94m[room:]\033[0m {room}")
+
+    if room:
+        # Fetch participant details from your User model
+        participants_data = []
+        for participant_id in room.participants:
+            user = User.objects(id=participant_id).first()
+            participants_data.append({
+                "id": str(user.id),
+                "name": user.username  # or whatever your field is
+            })
+    
+        
+        socketio.emit('participants_list', {
+            "participants": participants_data,
+            "host": str(room.host)
+        }, room=room_id)
+
+
+@socketio.on('create-room')
+def handle_create_room(data):
+    room = data.get('room')
+    user_info = connected_users.get(request.sid)
+    if not room:
+        return
+
+    join_room(room)
+    room_hosts[room] = request.sid
+    room_users[room].add(request.sid)
+
+    # persist in DB as a new Room (if not exists)
+    db_user = None
+    if user_info and user_info.get('id'):
+        db_user = User.objects(id=user_info['id']).first()
+
+    room_doc = Room.objects(roomId=room).first()
+    if not room_doc:
+        room_doc = Room(roomId=room, host=db_user)
+    # add host to participants (record who joined)
+    if db_user and db_user not in room_doc.participants:
+        room_doc.participants.append(db_user)
+    room_doc.save()
+
+    emit('room-created', {'room': room, 'hostId': request.sid})
+    handle_get_participants(room)
+
+
 @socketio.on('join')
 def handle_join(data):
     room = data.get('room')
@@ -89,19 +145,71 @@ def handle_join(data):
     join_room(room)
     room_users[room].add(request.sid)
 
+    # persist to DB: add this user to room.participants (record)
+    db_user = None
+    if user_info and user_info.get('id'):
+        db_user = User.objects(id=user_info['id']).first()
+
+    room_doc = Room.objects(roomId=room).first()
+    if not room_doc:
+        # create room record if it didn't exist
+        room_doc = Room(roomId=room, host=db_user)
+    if db_user and db_user not in room_doc.participants:
+        room_doc.participants.append(db_user)
+    room_doc.save()
+
+    # Send existing users to the newcomer (socket-level users)
     users_in_room = [
         {'userId': sid, 'name': connected_users.get(sid, {}).get('name', 'Stranger')}
         for sid in room_users[room] if sid != request.sid
     ]
+    emit('existing-users', {'users': users_in_room}, to=request.sid)
 
-    # Send existing users only to the new joiner
-    emit('existing-users', {'users': users_in_room})
+    # Notify other sockets
+    emit('user-joined', {'userId': request.sid, 'name': user_info['name']}, room=room, include_self=False)
 
-    # Notify others in room about new user
-    emit('user-joined', {
-        'userId': request.sid,
-        'name': user_info['name']
-    }, room=room, include_self=False)
+    # Send a full participants list (socketId <-> DB userId <-> name)
+    handle_get_participants(room)
+
+
+@socketio.on('leave-room')
+def handle_leave_room(data):
+    room = data.get('room')
+    sid = request.sid
+    if room in room_users and sid in room_users[room]:
+        room_users[room].remove(sid)
+
+    emit('user-left', {'userId': sid}, room=room, include_self=False)
+    handle_get_participants(room)
+    leave_room(room)
+
+    if room_hosts.get(room) == sid:
+        if room_users[room]:
+            new_host = next(iter(room_users[room]))
+            room_hosts[room] = new_host
+            emit('host-info', {'hostId': new_host}, room=room)
+        else:
+            room_hosts.pop(room, None)
+
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    sid = request.sid
+    user_info = connected_users.pop(sid, {'name': 'Stranger'})
+
+    def delayed_removal():
+        import time
+        time.sleep(5)  # short grace period
+        still_connected = any(user['id'] == user_info.get('id') for user in connected_users.values())
+        if not still_connected:
+            for room, users in room_users.items():
+                if sid in users:
+                    users.remove(sid)
+                    emit('user-left', {'userId': sid}, room=room)
+                    handle_get_participants(room)
+            print(f"{user_info.get('name')} permanently disconnected.")
+
+    eventlet.spawn(delayed_removal)
 
 @socketio.on('signal')
 def handle_signal(data):
@@ -115,6 +223,7 @@ def handle_signal(data):
             'candidate': data.get('candidate')
         }, to=to)
 
+
 @socketio.on('message')
 def handle_message(data):
     room = data.get('room')
@@ -127,38 +236,6 @@ def handle_message(data):
         'from': request.sid # Add sender socket ID
     }, room=room)
 
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    sid = request.sid
-    user_info = connected_users.pop(sid, {'name': 'Stranger'})
-
-    # Delay removal and emit
-    def delayed_removal():
-        import time
-        time.sleep(5)  # Wait 5 seconds to see if the user reconnects
-        # If still disconnected
-        still_connected = any(user['id'] == user_info.get('id') for user in connected_users.values())
-        if not still_connected:
-            for room, users in room_users.items():
-                if sid in users:
-                    users.remove(sid)
-                    emit('user-left', {'userId': sid}, room=room)
-            print(f"{user_info['name']} permanently disconnected.")
-
-    eventlet.spawn(delayed_removal)
-
-@socketio.on('leave-room')
-def handle_leave_room(data):
-    room = data.get('room')
-    sid = request.sid
-
-    if room in room_users and sid in room_users[room]: # Remove user from room
-        room_users[room].remove(sid)
-
-    emit('user-left', {'userId': sid}, room=room, include_self=False) # Notify others
-    leave_room(room) # Leave the room
-    print(f"{connected_users.get(sid, {}).get('name', 'Unknown')} left room {room}")
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)

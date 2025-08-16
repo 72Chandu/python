@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block title %}About{% endblock %}
+
+{% block content %}
+    <h1>About Us</h1>
+    <p>Welcome {{ name2 }} to the about section of this awesome Flask app!</p>
+    <img src="{{url_for('static',filename='k.jpg')}}" alt="loading..">
+{% endblock %}

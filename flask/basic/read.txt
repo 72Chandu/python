@@ -1,0 +1,9 @@
+{{ name }}: This is how you output a variable in Jinja.
+
+{% ... %}: This is used for control structures like loops and conditions.
+
+Add a layout template (with extends)
+
+Include a navigation bar across pages
+
+Pass data dynamically from a form to Jinja

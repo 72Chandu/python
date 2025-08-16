@@ -1,11 +1,12 @@
+# model/room.py
 from mongoengine import Document, StringField, ListField, ReferenceField, DateTimeField, IntField
 from datetime import datetime, timezone
-from user import user  # Assuming you have this defined elsewhere
+from model.user import User  # <- adjust path to your user model file
 
 class Room(Document):
     roomId = StringField(required=True, unique=True)
-    participants = ListField(ReferenceField(user))
-    host = ReferenceField(user)
+    participants = ListField(ReferenceField(User))  # stores DB User refs
+    host = ReferenceField(User, null=True)
     startedAt = DateTimeField(default=lambda: datetime.now(timezone.utc))
     endedAt = DateTimeField(default=None, null=True)
     duration = IntField(default=0)

@@ -6,7 +6,7 @@ let videoEnabled = true;
 let roomId = "";
 let mySocketId = null;
 const participants = new Map();
-
+let hostId = null; // <-- NEW: Track host ID
 const savedUsername = localStorage.getItem('username') || 'You';
 
 
@@ -14,6 +14,20 @@ socket.on('connect', () => {
   mySocketId = socket.id;
   console.log("My socket ID:", mySocketId);
   participants.set(mySocketId, savedUsername); // Add self
+  updateParticipantList();
+});
+
+// Host created a room
+socket.on('room-created', ({ room, hostId: id }) => {
+  hostId = id;
+  console.log("Room created:", room, "Host ID:", hostId);
+  participants.set(hostId, savedUsername + ' (Host)');
+  updateParticipantList();
+});
+
+socket.on('host-info', ({ hostId: id }) => {
+  hostId = id;
+  console.log("Current Host ID:", hostId);
   updateParticipantList();
 });
 
@@ -50,17 +64,11 @@ async function joinRoom() {
   // Save to localStorage
   localStorage.setItem('roomId', roomId);
   localStorage.setItem('username', username);
-
   socket.emit('join', { room, user: username });
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     localStream = stream;
-
     const audioTracks = stream.getAudioTracks();
-    // if (audioTracks.length > 0 && !audioTracks[0].enabled) {
-    //   audioTracks[0].enabled = true;
-    //   console.log("Audio track enabled");
-    // }
     audioTracks.forEach(track => {
       track.enabled = true;
       console.log("Enabling audio track:", track.label);
@@ -72,13 +80,12 @@ async function joinRoom() {
     const localVideo=document.getElementById('localVideo');
     localVideo.srcObject = stream;
     localVideo.muted = true; // Mute local video to prevent feedback
-
+    localVideo.className = 'w-full h-auto max-h-48 object-cover rounded-lg border-2 border-gray-300';
     socket.emit('existing-users', { room, user: username });
   } catch (err) {
     console.error('Error accessing media devices.', err);
   }
 }
-
 
 socket.on('existing-users', ({ users }) => {  
   if (!localStream)  return;
@@ -124,7 +131,7 @@ socket.on('user-joined', ({ userId , name}) => {
   });
 }
   // Add to participant list
-  participants.set(userId, name || 'Stranger');
+  participants.set(userId, name || 'Stranger');  
   updateParticipantList();
 });
 
@@ -139,7 +146,6 @@ socket.on('user-left', ({ userId }) => {
   participants.delete(userId);
   updateParticipantList();
 });
-
 
 socket.on('signal', async ({ from, type, offer, answer, candidate }) => {
   // If stream not ready, wait
@@ -203,9 +209,6 @@ function createPeerConnection(userId) {
       console.error('remoteVideos container not found in DOM.');
       return;
     }
-    // if (remoteVideo.srcObject !== event.streams[0]) {
-    //    remoteVideo.srcObject = event.streams[0];
-    // }
     const existing = document.getElementById(`video-${userId}`);
     if (!existing) {
       const remoteVideo = document.createElement('video');
@@ -215,7 +218,7 @@ function createPeerConnection(userId) {
       remoteVideo.playsInline = true;
       remoteVideo.controls = false;
       remoteVideo.muted = false;
-      remoteVideo.className = 'rounded-lg border-2 border-gray-300 w-64 h-48';
+      remoteVideo.className = 'w-full h-auto object-cover rounded-lg border-2 border-gray-300';
       remoteContainer.appendChild(remoteVideo);
     }
   };
@@ -223,8 +226,30 @@ function createPeerConnection(userId) {
   return pc;
 }
 
+
+function updateParticipantList() {
+  const list = document.getElementById('participants');
+  if (!list) return;
+  list.innerHTML = ''; // Clear previous list
+  participants.forEach((name, id) => {
+    let displayName = name;
+    if(id=== hostId) displayName += ' (Host)';
+    if(id === mySocketId) displayName += ' (You)';
+
+    const li = document.createElement('li');
+    li.textContent = displayName;
+    li.className = 'text-white px-2 py-1 border-b border-gray-700';
+    list.appendChild(li);
+  });
+}
+
 function generateRoom() {
   const room = Math.random().toString(36).substring(2, 8);
+  roomId = room;
+  let username=localStorage.getItem('username') || 'You';
+  localStorage.setItem('roomId', roomId);
+  localStorage.setItem('username', username);
+  socket.emit('create-room', { room, user: username });
   const link = `${location.origin}/?room=${room}`;
   document.getElementById('room-link').textContent = link;
   document.getElementById('room-input').value = room;
@@ -282,7 +307,6 @@ async function shareScreen() {
   }
 }
 
-
 function toggleAudio() {
   if (!localStream) return;
   audioEnabled = !audioEnabled;
@@ -293,7 +317,6 @@ function toggleAudio() {
   console.log("Track.enabled:", localStream.getAudioTracks()[0].enabled); 
 }
 
-
 function toggleVideo() {
   if (!localStream) return;
   videoEnabled = !videoEnabled;
@@ -301,21 +324,6 @@ function toggleVideo() {
   const button = document.getElementById('toggle-video');
   button.textContent = videoEnabled ? '📷' : '🎥';
 }
-
-function updateParticipantList() {
-  const list = document.getElementById('participants');
-  if (!list) return;
-
-  list.innerHTML = ''; // Clear previous list
-
-  participants.forEach((name, id) => {
-    const li = document.createElement('li');
-    li.textContent = `${name} ${id === mySocketId ? '(You)' : ''}`;
-    li.className = 'text-white px-2 py-1 border-b border-gray-700';
-    list.appendChild(li);
-  });
-}
-
 
 function leaveRoom() {
   if(!roomId) return;
